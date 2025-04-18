@@ -51,22 +51,17 @@
         </div>
       </section>
 
-      <!-- 무작위 챌린지 받기 버튼 -->
-      <button class="pick-btn" @click="pickRandomChallenge">
-        무작위 챌린지 받기
-      </button>
-
       <!-- 선택된 미션 정보 표시 -->
       <section v-if="selectedChallenge" class="challenge-detail">
         <h4>{{ selectedChallenge.title }}</h4>
-        <p>{{ selectedChallenge.desc }}</p>
+        <p>{{ selectedChallenge.description }}</p>
         <div class="challenge-tags">
           <span 
             v-for="t in selectedChallenge.tags" 
-            :key="t" 
+            :key="t.id" 
             class="challenge-tag"
           >
-            #{{ t }}
+            #{{ t.name }}
           </span>
         </div>
 
@@ -75,12 +70,17 @@
           <button class="cancel-btn" @click="cancelChallenge">취소</button>
         </div>
       </section>
+
+      <!-- 무작위 챌린지 받기 버튼 -->
+      <button class="pick-btn" @click="pickRandomChallenge">
+        무작위 챌린지 받기
+      </button>
     </div>
   </div>
 </template>
 
 <script>
-import { mapState, mapGetters, mapActions } from 'vuex'
+import axios from '@/api/axios'
 
 export default {
   name: 'ChallengePage',
@@ -89,25 +89,30 @@ export default {
       selectedTagIds: [],
       selectedChallenge: null,
       // (NEW) 현재 선택된 난이도 태그 id
-      selectedDifficultyId: null
+      selectedDifficultyId: null,
+      tags: [],
     }
   },
+  created() {
+    this.fetchTags(); 
+  },
   computed: {
-    ...mapState(['tags']),
-    ...mapGetters(['getRandomChallengeByTags']),
-
     // 난이도 태그(1~5)
     difficultyTags() {
-      return this.tags.filter(t => t.category === '난이도')
+      return this.tags.filter(t => t.id <= 9)
     },
     // 일반 태그
     normalTags() {
-      return this.tags.filter(t => t.category === '일반')
+      return this.tags.filter(t => t.id >= 10)
     }
   },
   methods: {
-    ...mapActions(['addOngoingChallenge']),
-
+    async fetchTags() {
+      if (this.tags.length === 0) {
+        const res = await axios.get('http://localhost:9090/tag/all');
+        this.tags = res.data.data;
+      }
+    },
     goBack() {
       this.$router.go(-1)
     },
@@ -157,21 +162,44 @@ export default {
     },
 
     // 무작위 챌린지
-    pickRandomChallenge() {
-      const challenge = this.getRandomChallengeByTags(this.selectedTagIds)
-      if (!challenge) {
-        alert("선택된 태그들을 모두 만족하는 챌린지가 없습니다!")
-        return
+    async pickRandomChallenge() {
+      try{
+        const param = {
+          tagIds : this.selectedTagIds,
+        }
+        const res = await axios.post('http://localhost:9090/challenge-card/recommend', param);
+        const challenge = res.data.data;
+        if(res.data.code !== '0000') {
+          alert(res.data.code + ': ' + res.data.msg)
+          return;
+        }
+        this.selectedChallenge = challenge
+      } catch (err) {
+        console.log(err);
+        alert("오류가 발생하였습니다.");
       }
-      this.selectedChallenge = challenge
     },
 
     // 도전하기
-    challengeNow() {
+    async challengeNow() {
       if (!this.selectedChallenge) return
-      this.addOngoingChallenge(this.selectedChallenge)
-      this.selectedChallenge = null
-      this.$router.push('/ongoing')
+      try{
+        const param = {
+          challengeCardId : this.selectedChallenge.id,
+        }
+        const res = await axios.post('http://localhost:9090/challenge-log/do', param);
+        if(res.data.code !== '0000') {
+          alert(res.data.code + ': ' + res.data.msg)
+          return;
+        }
+        this.selectedChallenge = null
+        this.$router.push('/ongoing')
+      } catch (err) {
+        console.log(err);
+        alert("오류가 발생하였습니다.");
+      }
+
+      
     },
 
     // 취소
@@ -306,6 +334,7 @@ export default {
 .pick-btn {
   display: block;
   margin: 0 auto 1rem auto;
+  margin-top: 15px;
   padding: 0.8rem 1.2rem;
   background-color: #1890ff;
   color: #fff;

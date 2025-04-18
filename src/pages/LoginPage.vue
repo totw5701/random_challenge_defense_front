@@ -23,16 +23,12 @@
 export default {
   name: 'LoginPage',
   methods: {
-    loginWithGoogle() {
-      // 실제 구현 시 소셜 로그인 API 연동
-      // 로그인 성공 후:
-      this.$router.push('/main')
-    },
     loginWithKakao() {
-      console.log("sdasd");
       // 실제 구현 시 소셜 로그인 API 연동
-      // 로그인 성공 후:
-      this.$router.push('/main')
+      const REST_API_KEY = '4be8f5a564408e4980f8039baf049fb7';
+      const REDIRECT_URI = 'http://localhost:8080/kakao-callback';
+      const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${REST_API_KEY}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
+      window.location.href = KAKAO_AUTH_URL;
     }
   }
 }

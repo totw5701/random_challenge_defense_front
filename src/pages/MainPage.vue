@@ -2,6 +2,24 @@
   <div class="main-container">
     <!-- 상단 헤더(네이비), 둥근 하단 -->
     <div class="main-header">
+
+      <div class="hamburger-wrapper">                       <!-- NEW -->
+        <button class="hamburger-btn" @click="toggleMenu">  <!-- NEW -->
+          <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- 드롭다운: 로그아웃 ------------------------------------------>
+        <transition name="fade">                            <!-- NEW -->
+          <div
+            v-if="showMenu"
+            class="logout-dropdown"
+            @click="logout"
+          >
+            로그아웃
+          </div>
+        </transition>
+      </div>                                                <!-- NEW -->
+
       <!-- 로고 원 -->
       <div class="header-logo-circle">
         <img src="@/assets/rcd-logo.png" alt="R 로고" class="header-logo-img" />
@@ -38,6 +56,11 @@
 <script>
 export default {
   name: 'MainPage',
+  data() {
+    return {
+      showMenu: false        /* NEW: 햄버거 메뉴 열림/닫힘 상태 */
+    }
+  },
   methods: {
     goToChallenge() {
       this.$router.push('/challenge')
@@ -47,6 +70,17 @@ export default {
     },
     goToHistory() {
       this.$router.push('/history')
+    },
+    toggleMenu() {              /* NEW */
+      this.showMenu = !this.showMenu
+    },
+    logout() {                  /* NEW */
+      // 실제 로그아웃 로직(API, auth 등)을 연결하세요
+      alert('로그아웃 되었습니다.')
+      this.showMenu = false
+      localStorage.removeItem('jwt-ack')
+      localStorage.removeItem('jwt-rfk')
+      this.$router.push('/login')
     }
   }
 }
@@ -66,16 +100,54 @@ export default {
 /* 상단 헤더 (네이비) 영역 */
 .main-header {
   width: 100%;
-  height: 130px;
+  height: 100px;
   background-color: #003049; 
-  border-bottom-left-radius: 60px;
-  border-bottom-right-radius: 60px;
+  border-bottom-left-radius: 40px;
+  border-bottom-right-radius: 40px;
   position: relative;
   display: flex;
   justify-content: center;
   align-items: flex-end;
   padding-bottom: 1rem;
+  padding-top: 1rem;
 }
+
+/* (NEW) 햄버거 & 드롭다운 ---------------------------------------- */
+.hamburger-wrapper {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+}
+.hamburger-btn {
+  background: #003049;
+  width: 46px;
+  height: 46px;
+  border: none;
+  color: #fff;
+  font-size: 1.4rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.logout-dropdown {
+  margin-top: 6px;
+  background: #ffffff;
+  border: 2px solid #006d8f;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  color: #006d8f;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+
+/* fade 트랜지션 (간단) */
+.fade-enter-active,
+.fade-leave-active { transition: opacity .2s }
+.fade-enter,
+.fade-leave-to { opacity: 0 }
 
 /* 헤더 로고 원형 영역 */
 .header-logo-circle {

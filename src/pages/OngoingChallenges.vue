@@ -23,16 +23,17 @@
     <section class="challenge-list">
       <div 
         v-for="(challenge, index) in ongoingChallenges" 
-        :key="index"
+        :key="challenge.id"
         class="challenge-card"
       >
         <!-- 상단 영역(네이비) 전체가 하나의 카드 -->
         <div class="card-header">
           <!-- 제목 + 펼침버튼 -->
           <div class="header-top" @click="toggleExpand(index)">
-            <span class="card-title">{{ challenge.title }}</span>
+            <span class="card-title">{{ challenge.challengeCard.title }}</span>
             <div class="toggle-icon">
-              {{ expandedIndex === index ? '▲' : '▼' }}
+              <i v-if="expandedIndex === index" class="fas fa-chevron-up"></i>
+              <i v-else class="fas fa-chevron-down"></i>
             </div>
           </div>
 
@@ -42,23 +43,23 @@
               v-if="expandedIndex === index"
               class="desc-area"
             >
-              {{ challenge.desc }}
+              {{ challenge.challengeCard.description }}
             </div>
           </transition>
-
+          
           <div class="card-body">
             <!-- 태그(항상 표시) -->
             <div class="tags-row">
               <span 
                 v-for="tag in challenge.tags" 
-                :key="tag" 
+                :key="tag.id" 
                 class="tag-item"
               >
-                #{{ tag }}
+                #{{ tag.name }}
               </span>
             </div>
 
-            <!-- 성공/포기 버튼(항상 표시) -->
+            <!-- 성공/포기 버튼 -->
             <div class="card-buttons">
               <button class="success-btn" @click="successChallenge(index)">성공</button>
               <button class="giveup-btn" @click="giveUpChallenge(index)">포기</button>
@@ -78,10 +79,15 @@
     <!-- 성공 모달 -->
     <div v-if="showSuccessModal" class="modal-overlay">
       <div class="modal-content">
-        <div class="" @click="closeSuvvessModal"><i class="fas fa-times"></i></div>
-        <h3>축하합니다! 챌린지 성공!</h3>
-        <p>간단 메모를 남겨주세요 (선택)</p>
-        <textarea v-model="memoText" rows="3"></textarea>
+        <div class="modal-title-box">
+          <span class="modal-title">축하합니다! 챌린지 성공!</span>
+          <span @click="closeSuvvessModal"><i class="fas fa-times"></i></span>
+        </div>
+        <div>
+          <span class="modal-subtitle">간단 메모를 남겨주세요 (선택)</span>
+        </div>
+        <hr class="modal-cross-line">
+        <textarea class="modal-textarea" v-model="memoText" rows="3"></textarea>
         <div class="modal-actions">
           <button @click="saveMemo">메모 저장</button>
         </div>
@@ -102,7 +108,8 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapActions } from 'vuex'
+import axios from '@/api/axios'
 
 export default {
   name: 'OngoingChallenges',
@@ -112,16 +119,32 @@ export default {
       showGiveUpModal: false,
       currentChallengeIndex: null,
       memoText: '',
-      expandedIndex: null // (NEW) 현재 펼쳐진 카드 인덱스
+      expandedIndex: null, // (NEW) 현재 펼쳐진 카드 인덱스
+      ongoingChallenges: [],
     }
   },
-  computed: {
-    ...mapState(['ongoingChallenges'])
+  created() {
+    this.fetchOngoingChallengeLogs(); 
   },
   methods: {
-    ...mapActions(['removeOngoingChallenge', 'addHistory']),
+    ...mapActions(['removeOngoingChallenge']),
+
     goBack() {
       this.$router.go(-1)
+    },
+    async fetchOngoingChallengeLogs() {
+      try{
+        const res = await axios.get('http://localhost:9090/challenge-log/on-going');
+        if(res.data.code !== '0000') {
+          alert(res.data.code + ': ' + res.data.msg)
+          return;
+        }
+        console.log(res.data.data);
+        this.ongoingChallenges = res.data.data;
+      } catch (err) {
+        console.log(err);
+        alert("오류가 발생하였습니다.");
+      }
     },
     toggleExpand(index) {
       if (this.expandedIndex === index) {
@@ -141,22 +164,45 @@ export default {
       this.currentChallengeIndex = index
       this.showGiveUpModal = true
     },
-    saveMemo() {
+    async saveMemo() {
       const challenge = this.ongoingChallenges[this.currentChallengeIndex]
-      this.addHistory({
-        challenge,
-        memo: this.memoText,
-        date: new Date().toISOString().slice(0, 10)
-      })
-      this.removeOngoingChallenge(this.currentChallengeIndex)
-      this.showSuccessModal = false
-      this.currentChallengeIndex = null
-      this.memoText = ''
+      try{
+        const param = {
+          challengeLogId: challenge.id,
+          memo: this.memoText,
+        }
+        const res = await axios.post('http://localhost:9090/challenge-log/success', param);
+        if(res.data.code !== '0000') {
+          alert(res.data.code + ': ' + res.data.msg)
+          return;
+        }
+        this.ongoingChallenges.splice(this.currentChallengeIndex, 1)
+        this.showSuccessModal = false
+        this.currentChallengeIndex = null
+        this.memoText = ''
+      } catch (err) {
+        console.log(err);
+        alert("오류가 발생하였습니다.");
+      }
     },
-    confirmGiveUp() {
-      this.removeOngoingChallenge(this.currentChallengeIndex)
-      this.showGiveUpModal = false
-      this.currentChallengeIndex = null
+    async confirmGiveUp() {
+      const challenge = this.ongoingChallenges[this.currentChallengeIndex]
+      try{
+        const param = {
+          challengeLogId: challenge.id,
+        }
+        const res = await axios.post('http://localhost:9090/challenge-log/skip', param);
+        if(res.data.code !== '0000') {
+          alert(res.data.code + ': ' + res.data.msg)
+          return;
+        }
+        this.ongoingChallenges.splice(this.currentChallengeIndex, 1)
+        this.showGiveUpModal = false
+        this.currentChallengeIndex = null
+      } catch (err) {
+        console.log(err);
+        alert("오류가 발생하였습니다.");
+      }
     },
     cancelGiveUp() {
       this.showGiveUpModal = false
@@ -274,8 +320,6 @@ export default {
 
 /* 태그/버튼은 항상 표시(펼침 여부 상관 X) */
 .tags-row {
-  margin-top: 0.5rem;
-  padding-left: 15px;
   padding-right: 15px;
 }
 .tag-item {
@@ -290,7 +334,7 @@ export default {
 }
 
 .card-buttons {
-  margin-top: 0.5rem;
+  margin-top: 0.7rem;
   display: flex;
   gap: 0.5rem;
   justify-content: flex-end;
@@ -361,6 +405,32 @@ export default {
   width: 80%;
   max-width: 300px;
 }
+.modal-title-box {
+  display: flex;
+  justify-content: space-between;
+}
+.modal-title {
+  font-size: 20px;
+  font-weight: bolder;
+  color: #003049;
+}
+.modal-subtitle {
+  font-size: 13px;
+  font-weight: bolder;
+  color: #003049;
+}
+.modal-cross-line {
+  border: none;
+  height: 2px;
+  background-color: #8ECAE6;
+  margin: 10px 0;
+  width: 100%;
+}
+.modal-textarea {
+  width: 295px;
+  height: 100px;
+  border-radius: 10px;
+}
 .modal-actions {
   margin-top: 1rem;
   text-align: right;
@@ -368,6 +438,12 @@ export default {
 .modal-actions button {
   margin-left: 0.5rem;
   padding: 0.5rem 1rem;
+  border-radius: 10px;
+  background-color: #FB8500;
+  color: white;
+  font-weight: bolder;
+  border: none;
+
 }
 .modal-ox-box {
   display: flex;

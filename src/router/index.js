@@ -8,10 +8,11 @@ import ChallengePage from '@/pages/ChallengePage.vue'
 import OngoingChallenges from '@/pages/OngoingChallenges.vue'
 import ChallengeHistory from '@/pages/ChallengeHistory.vue'
 import MyPage from '@/pages/MyPage.vue'
+import KakaoCallBack from '@/pages/KakaoCallBack'
 
 Vue.use(Router)
 
-export default new Router({
+const router = new Router({
   mode: 'history', // 혹은 'hash'
   routes: [
     {
@@ -47,6 +48,32 @@ export default new Router({
       path: '/mypage',
       name: 'MyPage',
       component: MyPage
+    },
+    {
+      path: '/kakao-callback',
+      name: 'KakaoCallback',
+      component: KakaoCallBack
     }
   ]
 })
+
+const authRequiredPaths = [
+  '/main',
+  '/challenge',
+  '/ongoing',
+  '/history',
+  '/mypage'
+]
+
+router.beforeEach((to, from, next) => {
+  const isLoggedIn = !!localStorage.getItem('jwt-atk')
+
+  if (authRequiredPaths.includes(to.path) && !isLoggedIn) {
+    alert('로그인이 필요합니다.')
+    next('/login')
+  } else {
+    next()
+  }
+})
+
+export default router
