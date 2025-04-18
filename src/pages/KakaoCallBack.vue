@@ -18,7 +18,7 @@ export default {
           return;
         }
 
-        const res = await axios.get(`http://localhost:9090/api/auth/kakao/callback?code=${code}`);
+        const res = await axios.get(`http://localhost:9090/member/kakao/callback?code=${code}`);
         console.log('res', res)
         if (res.data.data.accessToken) {
           localStorage.setItem('jwt-atk', res.data.data.accessToken);
