@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import axios from '@/api/axios'
+import api from '@/api/axios'
 
 export default {
   mounted() {
@@ -18,7 +18,7 @@ export default {
           return;
         }
 
-        const res = await axios.get(`http://localhost:9090/member/kakao/callback?code=${code}`);
+        const res = await api.get(`/member/kakao/callback?code=${code}`);
         console.log('res', res)
         if (res.data.data.accessToken) {
           localStorage.setItem('jwt-atk', res.data.data.accessToken);

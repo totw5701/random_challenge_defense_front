@@ -80,7 +80,7 @@
 </template>
 
 <script>
-import axios from '@/api/axios'
+import api from '@/api/axios'
 
 export default {
   name: 'ChallengePage',
@@ -109,7 +109,7 @@ export default {
   methods: {
     async fetchTags() {
       if (this.tags.length === 0) {
-        const res = await axios.get('http://localhost:9090/tag/all');
+        const res = await api.get('/tag/all');
         this.tags = res.data.data;
       }
     },
@@ -167,7 +167,7 @@ export default {
         const param = {
           tagIds : this.selectedTagIds,
         }
-        const res = await axios.post('http://localhost:9090/challenge-card/recommend', param);
+        const res = await api.post('/challenge-card/recommend', param);
         const challenge = res.data.data;
         if(res.data.code !== '0000') {
           alert(res.data.code + ': ' + res.data.msg)
@@ -187,7 +187,7 @@ export default {
         const param = {
           challengeCardId : this.selectedChallenge.id,
         }
-        const res = await axios.post('http://localhost:9090/challenge-log/do', param);
+        const res = await api.post('/challenge-log/do', param);
         if(res.data.code !== '0000') {
           alert(res.data.code + ': ' + res.data.msg)
           return;
@@ -213,10 +213,10 @@ export default {
 <style scoped>
 /* 전체 레이아웃 */
 .challenge-page {
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #E5F0F8; /* 예시: 연한 하늘색 */
+  background-color: #E5F0F8; 
 }
 
 /* 헤더 영역 */
@@ -263,6 +263,8 @@ export default {
 .challenge-content {
   flex: 1;
   padding: 1rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* 모바일에서 부드러운 스크롤 */
 }
 
 .cross-line {

@@ -186,6 +186,8 @@ export default {
   justify-content: center;
   gap: 1rem;
   padding-top: 2rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* 모바일에서 부드러운 스크롤 */
 }
 
 /* 메뉴 버튼 스타일 */

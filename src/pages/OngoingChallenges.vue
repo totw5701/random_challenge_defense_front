@@ -109,7 +109,7 @@
 
 <script>
 import { mapActions } from 'vuex'
-import axios from '@/api/axios'
+import api from '@/api/axios'
 
 export default {
   name: 'OngoingChallenges',
@@ -134,7 +134,7 @@ export default {
     },
     async fetchOngoingChallengeLogs() {
       try{
-        const res = await axios.get('http://localhost:9090/challenge-log/on-going');
+        const res = await api.get('/challenge-log/on-going');
         if(res.data.code !== '0000') {
           alert(res.data.code + ': ' + res.data.msg)
           return;
@@ -171,7 +171,7 @@ export default {
           challengeLogId: challenge.id,
           memo: this.memoText,
         }
-        const res = await axios.post('http://localhost:9090/challenge-log/success', param);
+        const res = await api.post('/challenge-log/success', param);
         if(res.data.code !== '0000') {
           alert(res.data.code + ': ' + res.data.msg)
           return;
@@ -191,7 +191,7 @@ export default {
         const param = {
           challengeLogId: challenge.id,
         }
-        const res = await axios.post('http://localhost:9090/challenge-log/skip', param);
+        const res = await api.post('/challenge-log/skip', param);
         if(res.data.code !== '0000') {
           alert(res.data.code + ': ' + res.data.msg)
           return;
@@ -278,8 +278,9 @@ export default {
 /* 챌린지 리스트 */
 .challenge-list {
   flex: 1;
-  overflow-y: auto;
   padding: 1.5rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* 모바일에서 부드러운 스크롤 */
 }
 
 /* 챌린지 카드(네이비 배경 유지) */

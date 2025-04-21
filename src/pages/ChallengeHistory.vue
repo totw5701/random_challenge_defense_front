@@ -91,7 +91,7 @@
 </template>
 
 <script>
-import axios from '@/api/axios'
+import api from '@/api/axios'
 
 export default {
   name: 'ChallengeHistory',
@@ -132,7 +132,7 @@ export default {
     },
     async fetchChallengeHistorys() {
       try{
-        const res = await axios.get('http://localhost:9090/challenge-log/history/' + (this.page - 1));
+        const res = await api.get('/challenge-log/history/' + (this.page - 1));
         if(res.data.code !== '0000') {
           alert(res.data.code + ': ' + res.data.msg)
           return;
@@ -231,8 +231,9 @@ export default {
 /* 이력 리스트 */
 .history-list {
   flex: 1;
-  overflow-y: auto;
   padding: 1rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* 모바일에서 부드러운 스크롤 */
 }
 
 /* (CHANGED) 각 카드: 상단 네이비 영역 + 하단 흰 영역 */

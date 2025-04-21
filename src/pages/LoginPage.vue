@@ -26,7 +26,7 @@ export default {
     loginWithKakao() {
       // 실제 구현 시 소셜 로그인 API 연동
       const REST_API_KEY = '4be8f5a564408e4980f8039baf049fb7';
-      const REDIRECT_URI = 'http://localhost:8080/kakao-callback';
+      const REDIRECT_URI = 'http://175.45.200.75:8080/kakao-callback';
       const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${REST_API_KEY}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
       window.location.href = KAKAO_AUTH_URL;
     }
